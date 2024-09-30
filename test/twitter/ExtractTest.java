@@ -5,44 +5,62 @@ package twitter;
 
 import static org.junit.Assert.*;
 
+import org.junit.Before;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.Test;
 
 public class ExtractTest {
 
-    /*
-     * TODO: your testing strategies for these methods should go here.
-     * See the ic03-testing exercise for examples of what a testing strategy comment looks like.
-     * Make sure you have partitions.
-     */
-    
-    private static final Instant d1 = Instant.parse("2016-02-17T10:00:00Z");
-    private static final Instant d2 = Instant.parse("2016-02-17T11:00:00Z");
-    
-    private static final Tweet tweet1 = new Tweet(1, "alyssa", "is it reasonable to talk about rivest so much?", d1);
-    private static final Tweet tweet2 = new Tweet(2, "bbitdiddle", "rivest talk in 30 minutes #hype", d2);
-    
-    @Test(expected=AssertionError.class)
-    public void testAssertionsEnabled() {
-        assert false; // make sure assertions are enabled with VM argument: -ea
+  private Tweet tweet1;
+    private Tweet tweet2;
+    private Tweet tweet3;
+
+    @Before
+    public void setUp() {
+        tweet1 = new Tweet(1L, "user1", "Hello @user2 and @User3!",Instant.parse("2023-01-01T10:00:00Z"));
+        tweet2 = new Tweet(2L, "user2", "Goodbye World!",Instant.parse("2023-01-02T11:00:00Z"));
+        tweet3 = new Tweet(3L, "user3", "Another Tweet.",Instant.parse("2023-01-01T12:00:00Z"));
     }
-    
+
     @Test
-    public void testGetTimespanTwoTweets() {
-        Timespan timespan = Extract.getTimespan(Arrays.asList(tweet1, tweet2));
-        
-        assertEquals("expected start", d1, timespan.getStart());
-        assertEquals("expected end", d2, timespan.getEnd());
+    public void testGetTimespan() {
+        List<Tweet> tweets = Arrays.asList(tweet1, tweet2, tweet3);
+        Timespan timespan = Extract.getTimespan(tweets);
+
+        assertEquals(Instant.parse("2023-01-01T10:00:00Z"), timespan.getStart());
+        assertEquals(Instant.parse("2023-01-02T11:00:00Z"), timespan.getEnd());
     }
-    
+
     @Test
-    public void testGetMentionedUsersNoMention() {
-        Set<String> mentionedUsers = Extract.getMentionedUsers(Arrays.asList(tweet1));
-        
-        assertTrue("expected empty set", mentionedUsers.isEmpty());
+    public void testGetMentionedUsers() {
+        List<Tweet> tweets = Arrays.asList(tweet1, tweet2, tweet3);
+        Set<String> mentionedUsers = Extract.getMentionedUsers(tweets);
+
+        Set<String> expectedUsers = new HashSet<>(Arrays.asList("user2", "user3"));
+        assertEquals(expectedUsers, mentionedUsers);
+    }
+
+    @Test
+    public void testGetMentionedUsersNoMentions() {
+        Tweet tweet = new Tweet(1, "user1", "This tweet has no mentions.", Instant.now());
+        List<Tweet> tweets = Arrays.asList(tweet);
+        Set<String> mentionedUsers = Extract.getMentionedUsers(tweets);
+
+        assertTrue(mentionedUsers.isEmpty());
+    }
+
+    @Test
+    public void testGetTimespanEmptyList() {
+        List<Tweet> tweets = Arrays.asList();
+        Timespan timespan = Extract.getTimespan(tweets);
+
+        // Assuming that an empty list returns the current time as both start and end
+        assertEquals(timespan.getStart(), timespan.getEnd());
     }
 
     /*

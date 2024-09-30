@@ -79,4 +79,9 @@ public class Timespan {
         result = prime * result + end.hashCode();
         return result;
     }
+
+    public boolean contains(Instant instant) {
+        return !instant.isBefore(start) && !instant.isAfter(end);
+    }
+
 }
